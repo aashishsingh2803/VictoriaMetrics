@@ -299,6 +299,13 @@ The shortlist of configuration flags is the following:
 ```
 vmbackupmanager performs regular backups according to the provided configs.
 
+subcommands:
+ backup: provides auxiliary backup-related commands
+ restore: restores backup specified by restore mark if it exists
+
+command-line flags:
+  -apiURL string
+     vmbackupmanager address to perform API requests (default "http://127.0.0.1:8300")
   -concurrency int
      The number of concurrent workers. Higher concurrency may reduce backup duration (default 10)
   -configFilePath string
@@ -328,7 +335,7 @@ vmbackupmanager performs regular backups according to the provided configs.
   -envflag.prefix string
      Prefix for environment variables if -envflag.enable is set
   -eula
-     By specifying this flag, you confirm that you have an enterprise license and accept the EULA https://victoriametrics.com/assets/VM_EULA.pdf . This flag is available only in enterprise version of VictoriaMetrics
+     By specifying this flag, you confirm that you have an enterprise license and accept the EULA https://victoriametrics.com/assets/VM_EULA.pdf . This flag is available only in VictoriaMetrics enterprise. See https://docs.victoriametrics.com/enterprise.html
   -flagsAuthKey string
      Auth key for /flags endpoint. It must be passed via authKey query arg. It overrides httpAuth.* settings
   -fs.disableMmap
@@ -377,7 +384,7 @@ vmbackupmanager performs regular backups according to the provided configs.
      The maximum upload speed. There is no limit if it is set to 0
   -memory.allowedBytes size
      Allowed size of system memory VictoriaMetrics caches may occupy. This option overrides -memory.allowedPercent if set to a non-zero value. Too low a value may increase the cache miss rate usually resulting in higher CPU and disk IO usage. Too high a value may evict too much data from OS page cache resulting in higher disk IO usage
-     Supports the following optional suffixes for size values: KB, MB, GB, KiB, MiB, GiB (default 0)
+     Supports the following optional suffixes for size values: KB, MB, GB, TB, KiB, MiB, GiB, TiB (default 0)
   -memory.allowedPercent float
      Allowed percent of system memory VictoriaMetrics caches may occupy. See also -memory.allowedBytes. Too low a value may increase cache miss rate usually resulting in higher CPU and disk IO usage. Too high a value may evict too much data from OS page cache which will result in higher disk IO usage (default 60)
   -metricsAuthKey string
@@ -392,8 +399,6 @@ vmbackupmanager performs regular backups according to the provided configs.
   -pushmetrics.url array
      Optional URL to push metrics exposed at /metrics page. See https://docs.victoriametrics.com/#push-metrics . By default metrics exposed at /metrics page aren't pushed to any remote storage
      Supports an array of values separated by comma or specified via multiple flags.
-  -restoreOnStart
-     Check if backup restore was requested and restore requested backup.
   -runOnStart
      Upload backups immediately after start of the service. Otherwise the backup starts on new hour
   -s3ForcePathStyle

@@ -52,10 +52,18 @@ func insertRows(at *auth.Token, series []parser.Series, extraLabels []prompbmars
 			Name:  "__name__",
 			Value: ss.Metric,
 		})
-		labels = append(labels, prompbmarshal.Label{
-			Name:  "host",
-			Value: ss.Host,
-		})
+		if ss.Host != "" {
+			labels = append(labels, prompbmarshal.Label{
+				Name:  "host",
+				Value: ss.Host,
+			})
+		}
+		if ss.Device != "" {
+			labels = append(labels, prompbmarshal.Label{
+				Name:  "device",
+				Value: ss.Device,
+			})
+		}
 		for _, tag := range ss.Tags {
 			name, value := parser.SplitTag(tag)
 			if name == "host" {

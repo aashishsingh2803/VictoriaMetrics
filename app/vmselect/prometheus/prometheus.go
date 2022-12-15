@@ -57,6 +57,15 @@ var (
 // Default step used if not set.
 const defaultStep = 5 * 60 * 1000
 
+// ExpandWithExprs handles the request to /expand-with-exprs
+func ExpandWithExprs(w http.ResponseWriter, r *http.Request) {
+	query := r.FormValue("query")
+	bw := bufferedwriter.Get(w)
+	defer bufferedwriter.Put(bw)
+	WriteExpandWithExprsResponse(bw, query)
+	_ = bw.Flush()
+}
+
 // FederateHandler implements /federate . See https://prometheus.io/docs/prometheus/latest/federation/
 func FederateHandler(startTime time.Time, w http.ResponseWriter, r *http.Request) error {
 	defer federateDuration.UpdateDuration(startTime)
@@ -399,10 +408,7 @@ func exportHandler(qt *querytracer.Tracer, w http.ResponseWriter, cp *commonPara
 	if format == "promapi" {
 		WriteExportPromAPIFooter(bw, qt)
 	}
-	if err := bw.Flush(); err != nil {
-		return err
-	}
-	return nil
+	return bw.Flush()
 }
 
 type exportBlock struct {
@@ -675,7 +681,7 @@ func QueryHandler(qt *querytracer.Tracer, startTime time.Time, w http.ResponseWr
 		step = defaultStep
 	}
 
-	if len(query) > maxQueryLen.N {
+	if len(query) > maxQueryLen.IntN() {
 		return fmt.Errorf("too long query; got %d bytes; mustn't exceed `-search.maxQueryLen=%d` bytes", len(query), maxQueryLen.N)
 	}
 	etfs, err := searchutils.GetExtraTagFilters(r)
@@ -823,7 +829,7 @@ func queryRangeHandler(qt *querytracer.Tracer, startTime time.Time, w http.Respo
 	}
 
 	// Validate input args.
-	if len(query) > maxQueryLen.N {
+	if len(query) > maxQueryLen.IntN() {
 		return fmt.Errorf("too long query; got %d bytes; mustn't exceed `-search.maxQueryLen=%d` bytes", len(query), maxQueryLen.N)
 	}
 	if start > end {

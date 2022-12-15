@@ -120,6 +120,16 @@ func RequestHandler(w http.ResponseWriter, r *http.Request) bool {
 		staticServer.ServeHTTP(w, r)
 		return true
 	}
+	if strings.HasPrefix(path, "/prometheus/api/v1/import/prometheus") || strings.HasPrefix(path, "/api/v1/import/prometheus") {
+		prometheusimportRequests.Inc()
+		if err := prometheusimport.InsertHandler(r); err != nil {
+			prometheusimportErrors.Inc()
+			httpserver.Errorf(w, r, "%s", err)
+			return true
+		}
+		w.WriteHeader(http.StatusNoContent)
+		return true
+	}
 	if strings.HasPrefix(path, "/datadog/") {
 		// Trim suffix from paths starting from /datadog/ in order to support legacy DataDog agent.
 		// See https://github.com/VictoriaMetrics/VictoriaMetrics/pull/2670
@@ -148,15 +158,6 @@ func RequestHandler(w http.ResponseWriter, r *http.Request) bool {
 		csvimportRequests.Inc()
 		if err := csvimport.InsertHandler(r); err != nil {
 			csvimportErrors.Inc()
-			httpserver.Errorf(w, r, "%s", err)
-			return true
-		}
-		w.WriteHeader(http.StatusNoContent)
-		return true
-	case "/prometheus/api/v1/import/prometheus", "/api/v1/import/prometheus":
-		prometheusimportRequests.Inc()
-		if err := prometheusimport.InsertHandler(r); err != nil {
-			prometheusimportErrors.Inc()
 			httpserver.Errorf(w, r, "%s", err)
 			return true
 		}
@@ -332,7 +333,8 @@ var (
 
 	promscrapeTargetsRequests          = metrics.NewCounter(`vm_http_requests_total{path="/targets"}`)
 	promscrapeServiceDiscoveryRequests = metrics.NewCounter(`vm_http_requests_total{path="/service-discovery"}`)
-	promscrapeAPIV1TargetsRequests     = metrics.NewCounter(`vm_http_requests_total{path="/api/v1/targets"}`)
+
+	promscrapeAPIV1TargetsRequests = metrics.NewCounter(`vm_http_requests_total{path="/api/v1/targets"}`)
 
 	promscrapeTargetResponseRequests = metrics.NewCounter(`vm_http_requests_total{path="/target_response"}`)
 	promscrapeTargetResponseErrors   = metrics.NewCounter(`vm_http_request_errors_total{path="/target_response"}`)
